@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:docs.ollama.com)",
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(CLAUDE_CODE_COMMAND=\"node mock-claude.js\" npm run dev)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(claude-code --version)",
+      "Bash(claude --version)",
+      "Bash(npm run dev:*)",
+      "Read(//c/Users/15857/Desktop/**)",
+      "Bash(git clone:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(yarn start:*)",
+      "Bash(docker-compose:*)",
+      "Bash(taskkill:*)",
+      "Bash(tasklist)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

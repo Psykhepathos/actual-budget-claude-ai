@@ -1,0 +1,10 @@
+{
+  "model": "claude-3-sonnet-20240229",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classifique esta transação: Compra no supermercado Pão de Açúcar no valor de R$ 150,00. Categorias disponíveis: Alimentação (id: 123e4567-e89b-12d3-a456-426614174000), Transporte (id: 456e7890-e12b-34c5-d678-901234567890), Lazer (id: 789e0123-e45f-67g8-h901-234567890123)"
+    }
+  ]
+}

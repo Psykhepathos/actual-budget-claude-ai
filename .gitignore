@@ -9,6 +9,9 @@ export-2020-01-10.csv
 
 # Secrets
 .secret-tokens
+.env.addon
+.env.*
+!.env.addon.example
 
 # MacOS
 .DS_Store

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  actual-server:
+    build: .
+    ports:
+      - "5006:5006"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./data:/data
+      - ./packages:/app/packages
+    networks:
+      - actual-network
+
+  claude-code-proxy:
+    build: ./claude-code-proxy
+    ports:
+      - "11434:11434"
+    environment:
+      - NODE_ENV=development
+      - PORT=11434
+    volumes:
+      - ./:/workspace:ro  # Read-only access to project files for context
+    networks:
+      - actual-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  actual-ai-dev:
+    image: actualbudget/actual-ai:latest  # Assuming this exists
+    environment:
+      - ACTUAL_SERVER_URL=http://actual-server:5006
+      - OLLAMA_BASE_URL=http://claude-code-proxy:11434  # Point to our proxy
+      - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}
+      - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}
+      - LLM_PROVIDER=ollama  # Use ollama provider but point to our proxy
+      - FEATURES=["dryRun"]  # Start in dry run mode
+    depends_on:
+      - actual-server
+      - claude-code-proxy
+    networks:
+      - actual-network
+
+networks:
+  actual-network:
+    driver: bridge

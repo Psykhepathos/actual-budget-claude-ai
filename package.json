@@ -22,6 +22,7 @@
     "start:server": "yarn workspace @actual-app/sync-server start",
     "start:server-monitor": "yarn workspace @actual-app/sync-server start-monitor",
     "start:server-dev": "NODE_ENV=development BROWSER_OPEN=localhost:5006 yarn npm-run-all --parallel 'start:server-monitor' 'start'",
+    "start:server-dev-ai": "NODE_ENV=development BROWSER_OPEN=localhost:5006 yarn npm-run-all --parallel 'start:server-monitor' 'start' 'ai:dev'",
     "start:desktop": "yarn desktop-dependencies && npm-run-all --parallel 'start:desktop-*'",
     "desktop-dependencies": "yarn rebuild-electron && yarn workspace loot-core build:browser",
     "start:desktop-node": "yarn workspace loot-core watch:node",
@@ -51,7 +52,11 @@
     "install:server": "yarn workspaces focus @actual-app/sync-server --production",
     "typecheck": "yarn tsc --incremental && tsc-strict",
     "jq": "./node_modules/node-jq/bin/jq",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ai:dev": "docker-compose -f docker-compose.dev.yml --env-file .env.addon up -d",
+    "ai:dev:logs": "docker-compose -f docker-compose.dev.yml logs -f actual-ai-dev",
+    "ai:dev:stop": "docker-compose -f docker-compose.dev.yml down",
+    "ai:dev:restart": "docker-compose -f docker-compose.dev.yml restart actual-ai-dev"
   },
   "devDependencies": {
     "@octokit/rest": "^22.0.0",
