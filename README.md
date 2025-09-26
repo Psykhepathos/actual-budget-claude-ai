@@ -1,83 +1,290 @@
-<p align="center">
-  <img src="/demo.png" alt="Actualbudget" />
-</p>
+# 🤖 Actual Budget - Fork Pessoal com Testes de IA
 
-## Getting Started
+Este é um **fork pessoal** do [Actual Budget](https://github.com/actualbudget/actual) para **testes locais** e experimentação com funcionalidades de IA.
 
-Actual is a local-first personal finance tool. It is 100% free and open-source, written in NodeJS, it has a synchronization element so that all your changes can move between devices without any heavy lifting.
+> ⚠️ **Este é um repositório de testes pessoais** - Para usar o Actual Budget oficial, acesse: https://github.com/actualbudget/actual
 
-If you are interested in contributing, or want to know how development works, see our [contributing](https://actualbudget.org/docs/contributing/) document we would love to have you.
+## 📝 Sobre este Fork
 
-Want to say thanks? Click the ⭐ at the top of the page.
+Este fork inclui:
+- ✅ **Actual Budget completo** (versão original)
+- 🧪 **Experimentos com IA** para classificação de transações
+- 🔧 **Ambiente de desenvolvimento** personalizado
+- 🐳 **Setup Docker** para testes locais
 
-## Key Links
+## 🎯 Objetivo
 
-- Actual [discord](https://discord.gg/pRYNYr4W5A) community.
-- Actual [Community Documentation](https://actualbudget.org/docs)
-- [Frequently asked questions](https://actualbudget.org/docs/faq)
+Este fork experimenta a integração de **IA para classificação automática de transações** no Actual Budget. O sistema usa um microserviço proxy que conecta o [actual-ai addon](https://github.com/actualbudget/actual-ai) com o seu ambiente local, permitindo classificação inteligente sem necessidade de API keys externas.
 
-## Installation
+## 🚀 Como Usar
 
-There are four ways to deploy Actual:
+### Pré-requisitos
+- **Node.js 20+** e **Yarn 4.9.1+**
+- **Docker** (obrigatório para funcionalidades de IA)
+- **Actual AI Addon** disponível via Docker
 
-1. One-click deployment [via PikaPods](https://www.pikapods.com/pods?run=actual) (~1.40 $/month) - recommended for non-technical users
-1. Managed hosting [via Fly.io](https://actualbudget.org/docs/install/fly) (~1.50 $/month)
-1. Self-hosted by using [a Docker image](https://actualbudget.org/docs/install/docker)
-1. Local-only apps - [downloadable Windows, Mac and Linux apps](https://actualbudget.org/download/) you can run on your device
+### Setup Básico (Sem IA)
+```bash
+git clone https://github.com/Psykhepathos/actual-budget-claude-ai.git
+cd actual-budget-claude-ai
+yarn install
+yarn start
+```
 
-Learn more in the [installation instructions docs](https://actualbudget.org/docs/install/).
+### Setup Completo com IA (Recomendado)
 
-## Ready to Start Budgeting?
+#### 1. Configure Variáveis de Ambiente
+```bash
+# Copie o arquivo de exemplo
+cp .env.addon.example .env.addon
 
-Read about [Envelope budgeting](https://actualbudget.org/docs/getting-started/envelope-budgeting) to know more about the idea behind Actual Budget.
+# Edite com suas configurações
+# Windows: notepad .env.addon
+# Mac/Linux: nano .env.addon
+```
 
-### Are you new to budgeting or want to start fresh?
+**Arquivo `.env.addon` - Configure apenas:**
+```env
+# Configurações do Actual Budget
+ACTUAL_PASSWORD=sua_senha_aqui
+ACTUAL_BUDGET_ID=  # Você vai obter depois
 
-Check out the community's [Starting Fresh](https://actualbudget.org/docs/getting-started/starting-fresh) guide so you can quickly get up and running!
+# Configuração do Claude Code Proxy (sem API key necessária!)
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
 
-### Are you migrating from other budgeting apps?
+# Features (comece com dry run para testar)
+FEATURES=["dryRun"]
+```
 
-Check out the community's [Migration](https://actualbudget.org/docs/migration/) guide to start jumping on the Actual Budget train!
+#### 2. Instale Dependências e Inicie
+```bash
+# Instalar dependências (primeira vez)
+yarn install
 
-## Documentation
+# Iniciar Actual + Claude Code Proxy + AI Addon
+yarn start:server-dev-ai
+```
 
-We have a wide range of documentation on how to use Actual, this is all available in our [Community Documentation](https://actualbudget.org/docs), this includes topics on Budgeting, Account Management, Tips & Tricks and some documentation for developers.
+#### 3. Configure o Actual Budget
+1. **Acesse**: http://localhost:5006
+2. **Crie uma conta** com a senha do `.env.addon`
+3. **Configure categorias** (ex: Alimentação, Transporte, Lazer...)
+4. **Vá em Configurações** → "Show advanced settings"
+5. **Copie o Sync ID** (Budget ID)
+6. **Cole no `.env.addon`**:
+   ```env
+   ACTUAL_BUDGET_ID=eb97472d-2bb9-4679-ac40-ba7c01e9d591
+   ```
 
-## Contributing
+#### 4. Reinicie o AI e Teste
+```bash
+# Reiniciar AI com novas configurações
+yarn ai:dev:restart
 
-Actual is a community driven product. Learn more about [contributing to Actual](https://actualbudget.org/docs/contributing/).
+# Monitorar logs em tempo real
+yarn ai:dev:logs
+```
 
-### Code structure
+#### 5. Teste a Classificação
+1. **Adicione transações** sem categoria
+2. **Aguarde 5 minutos** (intervalo de desenvolvimento)
+3. **Verifique** se apareceram tags `#dev-ai-classified`
+4. **Sucesso!** 🎉
 
-The Actual app is split up into a few packages:
+## 🔧 Microserviços e Componentes
 
-- loot-core - The core application that runs on any platform
-- desktop-client - The desktop UI
-- desktop-electron - The desktop app
+### 🤖 Claude Code Proxy
+Localizado em `./claude-code-proxy/`
 
-More information on the project structure is available in our [community documentation](https://actualbudget.org/docs/contributing/project-details).
+**O que faz**: Converte sua sessão local em uma API compatível com Ollama para o actual-ai addon
 
-### Feature Requests
+**Porta**: 11434 (mesma do Ollama)
 
-Current feature requests can be seen [here](https://github.com/actualbudget/actual/issues?q=is%3Aissue+label%3A%22needs+votes%22+sort%3Areactions-%2B1-desc).
-Vote for your favorite requests by reacting :+1: to the top comment of the request.
+**Como funciona**:
+- Usa o CLI local instalado
+- Não precisa de API keys
+- Simula API do Ollama para compatibilidade
 
-To add new feature requests, open a new Issue of the "Feature Request" type.
+### 🧠 Actual AI Addon
+**Imagem Docker**: `actualbudget/actual-ai:latest`
 
-### Translation
+**Configuração no docker-compose.dev.yml**:
+```yaml
+actual-ai-dev:
+  image: actualbudget/actual-ai:latest
+  environment:
+    - ACTUAL_SERVER_URL=http://actual-server:5006
+    - OLLAMA_BASE_URL=http://claude-code-proxy:11434  # Aponta para nosso proxy
+    - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}              # Do .env.addon
+    - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}           # Do .env.addon
+    - LLM_PROVIDER=ollama                            # Usa "ollama" mas é nosso proxy
+    - FEATURES=["dryRun"]                            # Modo seguro por padrão
+```
 
-Make Actual Budget accessible to more people by helping with the [Internationalization](https://actualbudget.org/docs/contributing/i18n/) of Actual. We are using a crowd sourcing tool to manage the translations, see our [Weblate Project](https://hosted.weblate.org/projects/actualbudget/). Weblate proudly supports open-source software projects through their [Libre plan](https://weblate.org/en/hosting/#libre).
+### 🐳 Docker Services
+```bash
+# Ver status dos containers
+docker ps
 
-<a href="https://hosted.weblate.org/engage/actualbudget/">
-<img src="https://hosted.weblate.org/widget/actualbudget/actual/287x66-grey.png" alt="Translation status" />
-</a>
+# Logs do AI addon
+yarn ai:dev:logs
 
-## Repo Activity
+# Logs do proxy
+docker-compose -f docker-compose.dev.yml logs claude-code-proxy
 
-![Alt](https://repobeats.axiom.co/api/embed/e20537dd8b74956f86736726ccfbc6f0565bec22.svg 'Repobeats analytics image')
+# Restart específico
+yarn ai:dev:restart
 
-## Sponsors
+# Parar tudo
+yarn ai:dev:stop
+```
 
-Thanks to our wonderful sponsors who make Actual Budget possible!
+## 🛠️ Comandos Úteis
 
-<a href="https://www.netlify.com"> <img src="https://www.netlify.com/v3/img/components/netlify-color-accent.svg" alt="Deploys by Netlify" /> </a>
+### Desenvolvimento
+```bash
+yarn start:server-dev-ai    # Actual + Proxy + AI (recomendado)
+yarn start:server-dev       # Apenas Actual + Proxy
+yarn start                  # Apenas Actual (sem AI)
+```
+
+### AI Addon Control
+```bash
+yarn ai:dev                 # Iniciar AI addon
+yarn ai:dev:logs            # Ver logs em tempo real
+yarn ai:dev:restart         # Reiniciar AI addon
+yarn ai:dev:stop            # Parar AI addon
+```
+
+### Debug e Manutenção
+```bash
+yarn typecheck             # Verificar tipos TypeScript
+yarn lint:fix              # Corrigir código automaticamente
+yarn test                  # Executar testes
+
+# Health checks
+curl http://localhost:11434/health          # Proxy
+curl http://localhost:5006                  # Actual Budget
+```
+
+## ⚙️ Configurações Avançadas
+
+### Modo Produção (Classificação Real)
+```bash
+# 1. Editar .env.addon
+FEATURES=[]  # Remover "dryRun"
+
+# 2. Reiniciar
+yarn ai:dev:restart
+```
+
+### Intervalos Personalizados
+```env
+# No docker-compose.dev.yml, adicionar:
+- CLASSIFICATION_INTERVAL=300000  # 5 minutos (padrão desenvolvimento)
+# Para produção: 14400000 (4 horas)
+```
+
+### Providers Alternativos
+Se quiser usar APIs externas ao invés do proxy local:
+
+```env
+# OpenAI
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-proj-sua_chave
+
+# Anthropic
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-sua_chave
+
+# Ollama real (local)
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434  # Ollama real
+```
+
+## 🚨 Troubleshooting
+
+### ❌ Containers não sobem
+```bash
+# Verificar se Docker está rodando
+docker --version
+
+# Verificar portas em uso
+netstat -an | findstr :5006    # Windows
+netstat -an | findstr :11434   # Windows
+lsof -i :5006                  # Mac/Linux
+lsof -i :11434                 # Mac/Linux
+
+# Matar processos se necessário
+taskkill /F /PID [PID]         # Windows
+kill -9 [PID]                 # Mac/Linux
+```
+
+### ❌ AI não classifica transações
+```bash
+# 1. Verificar logs
+yarn ai:dev:logs
+
+# 2. Verificar se proxy está funcionando
+curl http://localhost:11434/health
+
+# 3. Verificar configurações
+cat .env.addon
+
+# 4. Reiniciar tudo
+yarn ai:dev:stop
+yarn start:server-dev-ai
+```
+
+### ❌ Budget ID incorreto
+1. No Actual: **Configurações** → **Show advanced settings**
+2. Copie o **Sync ID** completo (formato: `uuid-completo`)
+3. Cole exatamente no `.env.addon`
+4. **Importante**: Sync ID ≠ Database ID
+
+### ❌ Proxy não responde
+```bash
+# Verificar se está rodando
+docker ps | grep claude-code-proxy
+
+# Verificar logs do proxy
+docker-compose -f docker-compose.dev.yml logs claude-code-proxy
+
+# Rebuild se necessário
+docker-compose -f docker-compose.dev.yml build claude-code-proxy
+```
+
+### ❌ Permissões Docker (Linux/Mac)
+```bash
+# Adicionar usuário ao grupo docker
+sudo usermod -aG docker $USER
+
+# Reiniciar sessão ou executar
+newgrp docker
+```
+
+## 📚 Documentação
+
+- **[COMO-USAR.md](./COMO-USAR.md)** - Guia completo de uso
+- **[CLAUDE.md](./CLAUDE.md)** - Referência de desenvolvimento
+- **[claude-code-proxy/](./claude-code-proxy/)** - Documentação técnica dos experimentos
+
+## ⚠️ Aviso Importante
+
+Este é um **fork experimental** apenas para:
+- 🧪 Testes pessoais de funcionalidades
+- 🔬 Experimentação com IA
+- 📚 Aprendizado de desenvolvimento
+
+**Para uso em produção**, use o projeto oficial: https://github.com/actualbudget/actual
+
+## 🔗 Links Úteis
+
+- **Projeto Original**: [Actual Budget](https://github.com/actualbudget/actual)
+- **Documentação Oficial**: [actualbudget.org/docs](https://actualbudget.org/docs)
+- **Comunidade**: [Discord](https://discord.gg/pRYNYr4W5A)
+
+## 📄 Licença
+
+MIT License - Mesmo do projeto original [Actual Budget](https://github.com/actualbudget/actual)
