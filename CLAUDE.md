@@ -9,23 +9,27 @@ Actual is a local-first personal finance tool. It is 100% free and open-source, 
 ## Essential Commands
 
 ### Development Commands
+
 - `yarn start` - Start browser application (parallel: frontend + backend)
 - `yarn start:server` - Start sync server only
 - `yarn start:server-dev` - Full development (server + client at localhost:5006)
 - `yarn start:desktop` - Start desktop application (Electron)
 
 ### Builds
+
 - `yarn build:browser` - Production build for web client
 - `yarn build:desktop` - Desktop application build
 - `yarn build:server` - Sync server build
 - `yarn build:api` - API build
 
 ### Code Quality
+
 - `yarn typecheck` - Run TypeScript type checking
 - `yarn lint` - Check code with ESLint and Prettier
 - `yarn lint:fix` - Automatically fix lint issues (preferred over `yarn lint`)
 
 ### Testing
+
 - `yarn test` - Run all tests in parallel
 - `yarn workspace <workspace-name> run test <test-path>` - Test specific workspace
 - `yarn e2e` - End-to-end tests (except desktop)
@@ -33,18 +37,21 @@ Actual is a local-first personal finance tool. It is 100% free and open-source, 
 - Always use `--watch=false` flag to avoid watch mode in tests
 
 ### AI and Docker Commands
+
 - `yarn ai:dev` - Start Docker containers for AI features
 - `yarn ai:dev:logs` - View AI container logs
 - `yarn ai:dev:stop` - Stop AI containers
 - `yarn ai:dev:restart` - Restart AI container
 
 ### Workspace-Specific Commands
+
 - `yarn workspace <workspace-name> run <command>` - Run command in specific workspace
 - `yarn workspace @actual-app/web start:browser` - Frontend only
 - `yarn workspace @actual-app/sync-server start` - Server only
 - `yarn workspace loot-core build:browser` - Core only
 
 ### Important
+
 - Always run yarn commands in root directory, never in child workspaces
 - Use Vitest as test runner with minimal mocks
 - Use `--watch=false` flag to avoid watch mode in tests
@@ -55,12 +62,14 @@ Actual is a local-first personal finance tool. It is 100% free and open-source, 
 This is a Yarn monorepo with the following main packages:
 
 ### Core Packages
+
 - **loot-core** - Core application that runs on any platform. Contains all business logic, state management, and works in both browser and desktop.
 - **desktop-client** - User interface for web/browser (legacy name, but used in browser)
 - **desktop-electron** - Electron wrapper for desktop application
 - **sync-server** - Synchronization server for data between devices
 
 ### Support Packages
+
 - **api** - Public API for external integration
 - **crdt** - CRDT (Conflict-free Replicated Data Types) implementation for synchronization
 - **component-library** - Reusable React components
@@ -68,6 +77,7 @@ This is a Yarn monorepo with the following main packages:
 - **eslint-plugin-actual** - Project-specific ESLint rules
 
 ### TypeScript Configuration
+
 - Monorepo configuration with path mapping for imports
 - Strict mode partially enabled (transition in progress)
 - typescript-strict-plugin for additional strictness
@@ -76,6 +86,7 @@ This is a Yarn monorepo with the following main packages:
   - `@desktop-client/*` → `./packages/desktop-client/src/*`
 
 ### Main Technologies
+
 - **Frontend**: React 19, Redux Toolkit, React Router, Emotion (CSS-in-JS)
 - **Backend**: Node.js, Express, SQLite (better-sqlite3), bcrypt
 - **Build**: Vite, TypeScript, Rollup
@@ -83,12 +94,14 @@ This is a Yarn monorepo with the following main packages:
 - **Database**: SQLite with CRDT synchronization
 
 ### Data Structure
+
 - Local-first system with optional synchronization
 - Personal financial data (accounts, transactions, budgets)
 - Bank import support (OFX, CSV)
 - Schedules and automatic rules
 
 ### Code Conventions
+
 - Use TypeScript for all new code
 - Prefer interfaces over types
 - Avoid enums; use objects or maps instead
@@ -103,17 +116,20 @@ This is a Yarn monorepo with the following main packages:
 - Each new component should have its own file
 
 ### Internationalization
+
 - i18next system for multiple languages
 - `yarn generate:i18n` - Generate translation files
 - Contributions via Weblate
 
 ### Development Workflow
+
 - Always run `yarn typecheck` before commits to validate TypeScript
 - Run `yarn lint:fix` instead of just `yarn lint` to automatically fix issues
 - Run tests with `--watch=false` to avoid watch mode
 - For specific tests: `yarn workspace <workspace> run test <path>`
 
 ### Development Environment
+
 - Node.js ≥20, Yarn 4.9.1
 - Hot reload support in development
 - Docker for optional components (AI features)

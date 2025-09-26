@@ -84,10 +84,12 @@ export interface OllamaChatResponse {
 
 export interface AnthropicMessage {
   role: 'user' | 'assistant';
-  content: string | Array<{
-    type: 'text';
-    text: string;
-  }>;
+  content:
+    | string
+    | Array<{
+        type: 'text';
+        text: string;
+      }>;
 }
 
 export interface AnthropicRequest {

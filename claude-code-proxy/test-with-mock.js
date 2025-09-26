@@ -1,8 +1,8 @@
 // Teste com mock do Claude Code para desenvolvimento
+const { spawn } = require('child_process');
 const http = require('http');
 
 // Mock Claude Code para teste local
-const { spawn } = require('child_process');
 const path = require('path');
 
 // Cria um mock script do Claude Code
@@ -34,7 +34,7 @@ function testProxyWithMock() {
   setTimeout(() => {
     // Teste 1: Health check
     console.log('1. Testando health check...');
-    makeRequest('GET', '/health', null, (response) => {
+    makeRequest('GET', '/health', null, response => {
       console.log('✅ Health check:', response.status);
 
       // Teste 2: Generate com mock
@@ -42,10 +42,10 @@ function testProxyWithMock() {
       const generateRequest = {
         model: 'claude-code:latest',
         prompt: 'Classifique esta transação: Supermercado XYZ -45.30',
-        stream: false
+        stream: false,
       };
 
-      makeRequest('POST', '/api/generate', generateRequest, (response) => {
+      makeRequest('POST', '/api/generate', generateRequest, response => {
         console.log('✅ Generate endpoint funcionando!');
         console.log('Resposta:', response.response?.substring(0, 200));
 
@@ -65,18 +65,18 @@ function makeRequest(method, path, data, callback) {
   const options = {
     hostname: 'localhost',
     port: 11434,
-    path: path,
-    method: method,
+    path,
+    method,
     headers: {
       'Content-Type': 'application/json',
-      ...(postData && { 'Content-Length': Buffer.byteLength(postData) })
-    }
+      ...(postData && { 'Content-Length': Buffer.byteLength(postData) }),
+    },
   };
 
-  const req = http.request(options, (res) => {
+  const req = http.request(options, res => {
     let body = '';
 
-    res.on('data', (chunk) => {
+    res.on('data', chunk => {
       body += chunk;
     });
 
@@ -92,7 +92,7 @@ function makeRequest(method, path, data, callback) {
     });
   });
 
-  req.on('error', (error) => {
+  req.on('error', error => {
     console.error('❌ Erro na requisição:', error.message);
     console.log('💡 Certifique-se de que o proxy está rodando: npm run dev');
   });

@@ -3,11 +3,13 @@
 ## Pré-requisitos
 
 ### 1. Instalar Claude Code CLI
+
 ```bash
 npm install -g @anthropics/claude-code
 ```
 
 ### 2. Configurar API Key do Anthropic
+
 ```bash
 # Windows (PowerShell)
 $env:ANTHROPIC_API_KEY="sk-ant-sua_chave_aqui"
@@ -69,6 +71,7 @@ yarn start:server-dev-ai
 ## Verificação da Instalação
 
 ### Teste Básico
+
 ```bash
 # Health check
 curl http://localhost:11434/health
@@ -87,6 +90,7 @@ curl -X POST http://localhost:11434/api/generate \
 ```
 
 ### Teste com Mock (Desenvolvimento)
+
 ```bash
 cd claude-code-proxy
 
@@ -101,14 +105,15 @@ node test-with-mock.js
 
 ### Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|----------|-----------|---------|
-| `ANTHROPIC_API_KEY` | API Key do Anthropic | **Obrigatório** |
-| `PORT` | Porta do servidor | `11434` |
-| `CLAUDE_CODE_COMMAND` | Comando personalizado para Claude Code | `claude-code` |
-| `NODE_ENV` | Ambiente (development/production) | `development` |
+| Variável              | Descrição                              | Padrão          |
+| --------------------- | -------------------------------------- | --------------- |
+| `ANTHROPIC_API_KEY`   | API Key do Anthropic                   | **Obrigatório** |
+| `PORT`                | Porta do servidor                      | `11434`         |
+| `CLAUDE_CODE_COMMAND` | Comando personalizado para Claude Code | `claude-code`   |
+| `NODE_ENV`            | Ambiente (development/production)      | `development`   |
 
 ### Exemplo de .env
+
 ```env
 ANTHROPIC_API_KEY=sk-ant-sua_chave_aqui
 PORT=11434
@@ -118,6 +123,7 @@ NODE_ENV=development
 ## Integração com Actual Budget
 
 ### 1. Configurar .env.addon
+
 ```env
 # Configurações do Actual
 ACTUAL_PASSWORD=sua_senha
@@ -132,9 +138,11 @@ OLLAMA_BASE_URL=http://claude-code-proxy:11434
 ```
 
 ### 2. Modificar docker-compose.dev.yml (se necessário)
+
 O arquivo `docker-compose.dev.yml` já está configurado para usar o proxy.
 
 ### 3. Executar
+
 ```bash
 # Opção 1: Usar script do Actual que já inclui o proxy
 yarn start:server-dev-ai
@@ -149,6 +157,7 @@ docker-compose -f docker-compose.dev.yml logs -f claude-code-proxy
 ## Troubleshooting
 
 ### Claude Code não encontrado
+
 ```bash
 # Verificar se está instalado
 claude-code --version
@@ -162,6 +171,7 @@ where claude-code  # Windows
 ```
 
 ### Erro de API Key
+
 ```bash
 # Verificar se está configurada
 echo $ANTHROPIC_API_KEY  # Linux/Mac
@@ -172,6 +182,7 @@ claude-code
 ```
 
 ### Porta em uso
+
 ```bash
 # Verificar o que está usando a porta
 netstat -ano | findstr :11434  # Windows
@@ -182,6 +193,7 @@ PORT=11435 npm start
 ```
 
 ### Logs e Debug
+
 ```bash
 # Ver logs do proxy
 docker-compose logs -f claude-code-proxy
@@ -194,6 +206,7 @@ curl -v http://localhost:11434/health
 ```
 
 ### Session Management
+
 - Sessions expiram após 30 minutos de inatividade
 - São recriadas automaticamente quando necessário
 - Logs mostram criação e limpeza de sessões
@@ -202,6 +215,7 @@ curl -v http://localhost:11434/health
 ## Monitoramento
 
 ### Health Checks
+
 ```bash
 # Status do serviço
 curl http://localhost:11434/health
@@ -214,6 +228,7 @@ docker-compose logs -f claude-code-proxy
 ```
 
 ### Métricas
+
 - Sessões ativas são listadas nos logs
 - Tempo de resposta é logado para cada request
 - Cleanup automático de sessões é reportado
@@ -221,6 +236,7 @@ docker-compose logs -f claude-code-proxy
 ## Desenvolvimento
 
 ### Estrutura do Projeto
+
 ```
 claude-code-proxy/
 ├── src/
@@ -234,6 +250,7 @@ claude-code-proxy/
 ```
 
 ### Scripts NPM
+
 ```bash
 npm run dev      # Desenvolvimento com hot reload
 npm run build    # Build TypeScript
@@ -242,4 +259,5 @@ npm test         # Testes (quando implementados)
 ```
 
 ### Mock para Desenvolvimento
+
 Use `CLAUDE_CODE_COMMAND="node mock-claude.js"` para testar sem gastar créditos da API Anthropic.

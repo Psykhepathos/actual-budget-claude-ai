@@ -17,7 +17,7 @@
 git remote remove origin
 
 # Adicionar seu novo repositório
-git remote add origin https://github.com/SEU_USUARIO/actual-budget-claude-ai.git
+git remote add origin https://github.com/Psykhepathos/actual-budget-claude-ai.git
 
 # Fazer primeiro push
 git push -u origin master
@@ -34,7 +34,7 @@ git push -u origin master
 Envie este link e as instruções do `COMO-USAR.md`:
 
 ```
-https://github.com/SEU_USUARIO/actual-budget-claude-ai
+https://github.com/Psykhepathos/actual-budget-claude-ai
 ```
 
 ## Para quem vai testar:
@@ -42,7 +42,7 @@ https://github.com/SEU_USUARIO/actual-budget-claude-ai
 ### Quick Start
 
 ```bash
-git clone https://github.com/SEU_USUARIO/actual-budget-claude-ai.git
+git clone https://github.com/Psykhepathos/actual-budget-claude-ai.git
 cd actual-budget-claude-ai
 yarn install
 cp .env.addon.example .env.addon

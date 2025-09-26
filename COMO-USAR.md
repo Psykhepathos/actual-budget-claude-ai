@@ -22,6 +22,7 @@ cp .env.addon.example .env.addon
 ```
 
 **Preencha apenas isto (sem API keys!):**
+
 ```env
 ACTUAL_PASSWORD=sua_senha_para_o_actual
 ```

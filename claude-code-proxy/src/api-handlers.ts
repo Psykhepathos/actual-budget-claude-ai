@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
+
 import { ClaudeCodeSessionManager } from './session-manager';
-import { OllamaGenerateRequest, OllamaGenerateResponse, OllamaTagsResponse, OllamaChatRequest, OllamaChatResponse, AnthropicRequest, AnthropicResponse } from './types';
+import {
+  OllamaGenerateRequest,
+  OllamaGenerateResponse,
+  OllamaTagsResponse,
+  OllamaChatRequest,
+  OllamaChatResponse,
+  AnthropicRequest,
+  AnthropicResponse,
+} from './types';
 
 export class ApiHandlers {
   constructor(private sessionManager: ClaudeCodeSessionManager) {}
@@ -17,8 +26,11 @@ export class ApiHandlers {
       const fullPrompt = system ? `${system}\n\n${prompt}` : prompt;
 
       // Get response from Claude Code
-      const sessionId = req.headers['x-session-id'] as string || 'default';
-      const response = await this.sessionManager.sendPrompt(sessionId, fullPrompt);
+      const sessionId = (req.headers['x-session-id'] as string) || 'default';
+      const response = await this.sessionManager.sendPrompt(
+        sessionId,
+        fullPrompt,
+      );
 
       if (stream) {
         // Send streaming response (NDJSON format)
@@ -42,7 +54,7 @@ export class ApiHandlers {
               prompt_eval_duration: 200000000,
               eval_count: this.estimateTokenCount(response),
               eval_duration: 800000000,
-            })
+            }),
           };
 
           res.write(JSON.stringify(streamResponse) + '\n');
@@ -71,12 +83,11 @@ export class ApiHandlers {
 
         res.json(generateResponse);
       }
-
     } catch (error) {
       console.error('Generate handler error:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -86,7 +97,9 @@ export class ApiHandlers {
       const request: OllamaChatRequest = req.body;
       const { model, messages, stream = false, options } = request;
 
-      console.log(`Chat request - Model: ${model}, Stream: ${stream}, Messages: ${messages ? messages.length : 0}`);
+      console.log(
+        `Chat request - Model: ${model}, Stream: ${stream}, Messages: ${messages ? messages.length : 0}`,
+      );
 
       // Convert chat messages to a single prompt with strict JSON formatting instructions
       let fullPrompt = '';
@@ -108,7 +121,9 @@ export class ApiHandlers {
       }
 
       // Add strict formatting instructions
-      fullPrompt = fullPrompt.trim() + `\n\nIMPORTANT: You MUST respond with ONLY valid JSON in one of these exact formats:
+      fullPrompt =
+        fullPrompt.trim() +
+        `\n\nIMPORTANT: You MUST respond with ONLY valid JSON in one of these exact formats:
 
 For existing category:
 {"type": "existing", "categoryId": "uuid-here"}
@@ -127,8 +142,11 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
       console.log(`Converted prompt: ${fullPrompt.substring(0, 200)}...`);
 
       // Get response from Claude Code
-      const sessionId = req.headers['x-session-id'] as string || 'default';
-      const rawResponse = await this.sessionManager.sendPrompt(sessionId, fullPrompt);
+      const sessionId = (req.headers['x-session-id'] as string) || 'default';
+      const rawResponse = await this.sessionManager.sendPrompt(
+        sessionId,
+        fullPrompt,
+      );
 
       // Extract JSON from response (handle markdown wrapping)
       let cleanedResponse = rawResponse;
@@ -181,7 +199,7 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
             created_at: new Date().toISOString(),
             message: {
               role: 'assistant',
-              content: chunks[i]
+              content: chunks[i],
             },
             done: isLast,
             ...(isLast && {
@@ -191,7 +209,7 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
               prompt_eval_duration: 200000000,
               eval_count: this.estimateTokenCount(cleanedResponse),
               eval_duration: 800000000,
-            })
+            }),
           };
 
           res.write(JSON.stringify(streamResponse) + '\n');
@@ -210,7 +228,7 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
           created_at: new Date().toISOString(),
           message: {
             role: 'assistant',
-            content: cleanedResponse
+            content: cleanedResponse,
           },
           done: true,
           total_duration: 1000000000,
@@ -223,12 +241,11 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
 
         res.json(chatResponse);
       }
-
     } catch (error) {
       console.error('Chat handler error:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -236,9 +253,17 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
   async anthropicHandler(req: Request, res: Response): Promise<void> {
     try {
       const request: AnthropicRequest = req.body;
-      const { model, messages, max_tokens, temperature, stream = false } = request;
+      const {
+        model,
+        messages,
+        max_tokens,
+        temperature,
+        stream = false,
+      } = request;
 
-      console.log(`Anthropic request - Model: ${model}, Stream: ${stream}, Messages: ${messages ? messages.length : 0}`);
+      console.log(
+        `Anthropic request - Model: ${model}, Stream: ${stream}, Messages: ${messages ? messages.length : 0}`,
+      );
 
       // Convert messages to a single prompt with strict JSON formatting instructions
       let fullPrompt = '';
@@ -271,7 +296,9 @@ se essa categoria nao existis, mais tarde irei entrar em contato para criar uma 
       }
 
       // Add strict formatting instructions
-      fullPrompt = fullPrompt.trim() + `\n\nIMPORTANT: You MUST respond with ONLY valid JSON in one of these exact formats:
+      fullPrompt =
+        fullPrompt.trim() +
+        `\n\nIMPORTANT: You MUST respond with ONLY valid JSON in one of these exact formats:
 
 For existing category:
 {"type": "existing", "categoryId": "uuid-here"}
@@ -290,8 +317,11 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
       console.log(`Anthropic prompt: ${fullPrompt.substring(0, 200)}...`);
 
       // Get response from Claude Code
-      const sessionId = req.headers['x-session-id'] as string || 'default';
-      const rawResponse = await this.sessionManager.sendPrompt(sessionId, fullPrompt);
+      const sessionId = (req.headers['x-session-id'] as string) || 'default';
+      const rawResponse = await this.sessionManager.sendPrompt(
+        sessionId,
+        fullPrompt,
+      );
 
       // Clean JSON response (remove markdown, etc.)
       let cleanedResponse = rawResponse;
@@ -317,7 +347,9 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
         }
       }
 
-      console.log(`Anthropic cleaned response: ${cleanedResponse.substring(0, 200)}...`);
+      console.log(
+        `Anthropic cleaned response: ${cleanedResponse.substring(0, 200)}...`,
+      );
 
       // Format as Anthropic response
       const anthropicResponse: AnthropicResponse = {
@@ -328,26 +360,25 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
         content: [
           {
             type: 'text',
-            text: cleanedResponse
-          }
+            text: cleanedResponse,
+          },
         ],
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: {
           input_tokens: this.estimateTokenCount(fullPrompt),
-          output_tokens: this.estimateTokenCount(cleanedResponse)
-        }
+          output_tokens: this.estimateTokenCount(cleanedResponse),
+        },
       };
 
       res.json(anthropicResponse);
-
     } catch (error) {
       console.error('Anthropic handler error:', error);
       res.status(500).json({
         error: {
           type: 'api_error',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        }
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
       });
     }
   }
@@ -368,10 +399,10 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
               family: 'claude',
               families: ['claude'],
               parameter_size: 'Anthropic Claude',
-              quantization_level: 'FP16'
-            }
-          }
-        ]
+              quantization_level: 'FP16',
+            },
+          },
+        ],
       };
 
       res.json(response);
@@ -379,14 +410,14 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
       console.error('Tags handler error:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   async versionHandler(req: Request, res: Response): Promise<void> {
     res.json({
-      version: '1.0.0-claude-proxy'
+      version: '1.0.0-claude-proxy',
     });
   }
 
@@ -396,10 +427,15 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
 
     const pullResponses = [
       { status: 'pulling manifest' },
-      { status: 'downloading', digest: 'sha256:mock', total: 1000000000, completed: 1000000000 },
+      {
+        status: 'downloading',
+        digest: 'sha256:mock',
+        total: 1000000000,
+        completed: 1000000000,
+      },
       { status: 'verifying sha256 digest' },
       { status: 'writing manifest' },
-      { status: 'success' }
+      { status: 'success' },
     ];
 
     for (const response of pullResponses) {
@@ -414,7 +450,7 @@ caso tenha duvida, raciocine sobre o valor da compra, o nome do lugar, pesquisa 
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      service: 'claude-code-proxy'
+      service: 'claude-code-proxy',
     });
   }
 

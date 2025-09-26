@@ -10,8 +10,8 @@ Fork do [Actual Budget](https://github.com/actualbudget/actual) com integração
 
 ```bash
 # Clone este repositório
-git clone https://github.com/SEU_USUARIO/actual-fresh.git
-cd actual-fresh
+git clone https://github.com/Psykhepathos/actual-budget-claude-ai.git
+cd actual-budget-claude-ai
 
 # Instale dependências
 yarn install
@@ -66,19 +66,23 @@ yarn ai:dev:restart
 ## 🎯 Como Funciona
 
 ### Classificação Automática
+
 - **🔄 A cada 5 minutos** (desenvolvimento) o Claude AI analisa transações sem categoria
 - **🧠 Aprende com seu histórico** de categorizações anteriores
 - **🏷️ Adiciona tags** `#dev-ai-classified` nas transações processadas
 - **🔒 Modo seguro** - Inicia em "dry run" (só simula, não altera)
 
 ### Modo Dry Run (Padrão)
+
 ```bash
 # Ver o que o AI faria (sem alterar nada)
 yarn ai:dev:logs
 ```
 
 ### Modo Produção
+
 Para ativar classificação real:
+
 1. Edite `.env.addon`
 2. Remova `"dryRun"` do array `FEATURES`
 3. Reinicie: `yarn ai:dev:restart`
@@ -88,6 +92,7 @@ Para ativar classificação real:
 ## 🛠️ Comandos Úteis
 
 ### Desenvolvimento
+
 ```bash
 yarn start:server-dev-ai    # Actual + AI
 yarn start:server-dev       # Só Actual
@@ -97,6 +102,7 @@ yarn ai:dev:stop            # Parar AI
 ```
 
 ### Manutenção
+
 ```bash
 yarn typecheck             # Verificar tipos
 yarn lint:fix              # Corrigir código
@@ -127,6 +133,7 @@ actual-fresh/
 ## 🔧 Troubleshooting
 
 ### ❌ API Key não funciona
+
 ```bash
 # Verificar se a key está correta
 curl -H "Authorization: Bearer sk-ant-api-sua_key" \
@@ -134,6 +141,7 @@ curl -H "Authorization: Bearer sk-ant-api-sua_key" \
 ```
 
 ### ❌ AI não classifica
+
 ```bash
 # Verificar logs
 yarn ai:dev:logs
@@ -147,6 +155,7 @@ yarn start:server-dev-ai
 ```
 
 ### ❌ Porta 11434 em uso
+
 ```bash
 # Ver o que está usando
 netstat -an | findstr 11434
@@ -156,6 +165,7 @@ taskkill /F /PID [PID_NUMBER]
 ```
 
 ### ❌ Budget ID incorreto
+
 1. Vá em Actual → Configurações → Avançadas
 2. Copie o **Sync ID** completo
 3. Cole exatamente no `.env.addon`
@@ -165,12 +175,14 @@ taskkill /F /PID [PID_NUMBER]
 ## 🎯 Para Produção
 
 ### Docker Compose Completo
+
 ```bash
 # Arquivo: docker-compose.prod.yml (você pode criar)
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ### Configurações Recomendadas
+
 ```env
 # Produção - intervalo maior (4 horas)
 CLASSIFICATION_INTERVAL=14400000
@@ -190,13 +202,6 @@ LOG_LEVEL=warn
 2. **Crie branch** para sua feature
 3. **Teste** com `yarn test` e `yarn typecheck`
 4. **Envie** Pull Request
-
-### Estrutura de Commits
-```bash
-git commit -m "feat(ai): adiciona classificação por merchant"
-git commit -m "fix(proxy): corrige timeout de sessão"
-git commit -m "docs: atualiza instruções de setup"
-```
 
 ---
 

@@ -1,7 +1,8 @@
-import express from 'express';
 import cors from 'cors';
-import { ClaudeCodeSessionManager } from './session-manager';
+import express from 'express';
+
 import { ApiHandlers } from './api-handlers';
+import { ClaudeCodeSessionManager } from './session-manager';
 
 const app = express();
 const port = process.env.PORT || 11434;
@@ -44,25 +45,32 @@ app.get('/', (req, res) => {
       'GET /api/tags - List available models',
       'GET /api/version - Get version information',
       'POST /api/pull - Pull/download models (mock)',
-      'GET /health - Health check'
-    ]
+      'GET /health - Health check',
+    ],
   });
 });
 
 // Error handling middleware
-app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: error.message
-  });
-});
+app.use(
+  (
+    error: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    console.error('Unhandled error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message,
+    });
+  },
+);
 
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Not found',
-    message: `Endpoint ${req.method} ${req.originalUrl} not found`
+    message: `Endpoint ${req.method} ${req.originalUrl} not found`,
   });
 });
 

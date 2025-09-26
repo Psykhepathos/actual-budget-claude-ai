@@ -4,8 +4,8 @@ services:
   actual-ai-dev:
     image: actualbudget/actual-ai:latest
     environment:
-      - ACTUAL_SERVER_URL=http://host.docker.internal:5006  # Connect to local Actual server
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434   # Connect to local Claude proxy
+      - ACTUAL_SERVER_URL=http://host.docker.internal:5006 # Connect to local Actual server
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434 # Connect to local Claude proxy
       - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}
       - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}
       - LLM_PROVIDER=ollama

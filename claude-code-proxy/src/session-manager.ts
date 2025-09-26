@@ -1,5 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
+
 import { v4 as uuidv4 } from 'uuid';
+
 import { ClaudeCodeSession } from './types';
 
 export class ClaudeCodeSessionManager {
@@ -19,7 +21,7 @@ export class ClaudeCodeSessionManager {
       process: null as any,
       inputStream: null as any,
       isAlive: true,
-      lastUsed: new Date()
+      lastUsed: new Date(),
     };
   }
 
@@ -33,18 +35,22 @@ export class ClaudeCodeSessionManager {
         const [command, ...args] = claudeCommand.split(' ');
 
         // Spawn Claude process in print mode for programmatic access
-        const claudeProcess = spawn(command, args.length > 0 ? args : ['--print'], {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            // Ensure Claude runs in non-TTY mode for programmatic access
-            NO_COLOR: '1',
-            TERM: 'dumb',
-            // Fix encoding issues
-            CHCP: '65001' // UTF-8 on Windows
+        const claudeProcess = spawn(
+          command,
+          args.length > 0 ? args : ['--print'],
+          {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              // Ensure Claude runs in non-TTY mode for programmatic access
+              NO_COLOR: '1',
+              TERM: 'dumb',
+              // Fix encoding issues
+              CHCP: '65001', // UTF-8 on Windows
+            },
+            shell: process.platform === 'win32', // Use shell on Windows
           },
-          shell: process.platform === 'win32' // Use shell on Windows
-        });
+        );
 
         if (!claudeProcess.stdin || !claudeProcess.stdout) {
           throw new Error('Failed to create process streams');
@@ -55,18 +61,24 @@ export class ClaudeCodeSessionManager {
           process: claudeProcess,
           inputStream: claudeProcess.stdin,
           isAlive: true,
-          lastUsed: new Date()
+          lastUsed: new Date(),
         };
 
         // Handle process events
         claudeProcess.on('error', (error: Error) => {
-          console.error(`Claude Code process error for session ${sessionId}:`, error);
+          console.error(
+            `Claude Code process error for session ${sessionId}:`,
+            error,
+          );
           session.isAlive = false;
           reject(error);
         });
 
         claudeProcess.on('exit', (code: number | null) => {
-          console.log(`Claude Code process exited for session ${sessionId} with code:`, code);
+          console.log(
+            `Claude Code process exited for session ${sessionId} with code:`,
+            code,
+          );
           session.isAlive = false;
         });
 
@@ -74,9 +86,11 @@ export class ClaudeCodeSessionManager {
         setTimeout(() => {
           resolve(session);
         }, 1000);
-
       } catch (error) {
-        console.error(`Failed to create Claude Code session ${sessionId}:`, error);
+        console.error(
+          `Failed to create Claude Code session ${sessionId}:`,
+          error,
+        );
         reject(error);
       }
     });
@@ -89,19 +103,26 @@ export class ClaudeCodeSessionManager {
 
       const [command, ...args] = claudeCommand.split(' ');
 
-      console.log(`[Request ${sessionId}] Sending prompt:`, prompt.substring(0, 100));
+      console.log(
+        `[Request ${sessionId}] Sending prompt:`,
+        prompt.substring(0, 100),
+      );
 
       // Spawn Claude in print mode for this single request
-      const claudeProcess = spawn(command, args.length > 0 ? args : ['--print'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: {
-          ...process.env,
-          NO_COLOR: '1',
-          TERM: 'dumb',
-          CHCP: '65001' // UTF-8 on Windows
+      const claudeProcess = spawn(
+        command,
+        args.length > 0 ? args : ['--print'],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: {
+            ...process.env,
+            NO_COLOR: '1',
+            TERM: 'dumb',
+            CHCP: '65001', // UTF-8 on Windows
+          },
+          shell: process.platform === 'win32',
         },
-        shell: process.platform === 'win32'
-      });
+      );
 
       if (!claudeProcess.stdin || !claudeProcess.stdout) {
         reject(new Error('Failed to create process streams'));
@@ -127,11 +148,18 @@ export class ClaudeCodeSessionManager {
 
         if (code === 0 && responseBuffer.trim()) {
           const parsedResponse = this.parseClaudeResponse(responseBuffer);
-          console.log(`[Request ${sessionId}] Response:`, parsedResponse.substring(0, 100));
+          console.log(
+            `[Request ${sessionId}] Response:`,
+            parsedResponse.substring(0, 100),
+          );
           resolve(parsedResponse);
         } else {
           console.error(`[Request ${sessionId}] Error:`, errorBuffer);
-          reject(new Error(`Claude process failed with code ${code}: ${errorBuffer}`));
+          reject(
+            new Error(
+              `Claude process failed with code ${code}: ${errorBuffer}`,
+            ),
+          );
         }
       });
 
@@ -160,7 +188,7 @@ export class ClaudeCodeSessionManager {
     ];
 
     return completionIndicators.some(indicator =>
-      responseBuffer.toLowerCase().includes(indicator.toLowerCase())
+      responseBuffer.toLowerCase().includes(indicator.toLowerCase()),
     );
   }
 
@@ -182,11 +210,12 @@ export class ClaudeCodeSessionManager {
     if (!response || response.length < 3) {
       // Try to find the actual response content
       const lines = rawResponse.split('\n');
-      const meaningfulLines = lines.filter(line =>
-        line.trim() &&
-        !line.toLowerCase().includes('human:') &&
-        !line.toLowerCase().includes('user:') &&
-        !line.includes('>')
+      const meaningfulLines = lines.filter(
+        line =>
+          line.trim() &&
+          !line.toLowerCase().includes('human:') &&
+          !line.toLowerCase().includes('user:') &&
+          !line.includes('>'),
       );
 
       if (meaningfulLines.length > 0) {
@@ -200,19 +229,22 @@ export class ClaudeCodeSessionManager {
   }
 
   private isSessionAlive(session: ClaudeCodeSession): boolean {
-    return session.isAlive &&
-           session.process &&
-           !session.process.killed &&
-           (new Date().getTime() - session.lastUsed.getTime()) < this.sessionTimeout;
+    return (
+      session.isAlive &&
+      session.process &&
+      !session.process.killed &&
+      new Date().getTime() - session.lastUsed.getTime() < this.sessionTimeout
+    );
   }
 
   private cleanupExpiredSessions(): void {
     const now = new Date();
 
     for (const [sessionId, session] of this.sessions.entries()) {
-      if (!this.isSessionAlive(session) ||
-          (now.getTime() - session.lastUsed.getTime()) > this.sessionTimeout) {
-
+      if (
+        !this.isSessionAlive(session) ||
+        now.getTime() - session.lastUsed.getTime() > this.sessionTimeout
+      ) {
         console.log(`Cleaning up expired session: ${sessionId}`);
 
         if (session.process && !session.process.killed) {

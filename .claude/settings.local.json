@@ -21,7 +21,9 @@
       "Bash(yarn start:*)",
       "Bash(docker-compose:*)",
       "Bash(taskkill:*)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "Bash(yarn typecheck)",
+      "Bash(git remote remove:*)"
     ],
     "deny": [],
     "ask": []

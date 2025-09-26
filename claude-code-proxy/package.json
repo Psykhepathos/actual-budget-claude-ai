@@ -21,7 +21,12 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.0"
   },
-  "keywords": ["claude", "ollama", "proxy", "ai"],
+  "keywords": [
+    "claude",
+    "ollama",
+    "proxy",
+    "ai"
+  ],
   "author": "",
   "license": "MIT"
 }
