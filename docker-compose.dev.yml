@@ -32,14 +32,17 @@ services:
       start_period: 40s
 
   actual-ai-dev:
-    image: actualbudget/actual-ai:latest # Assuming this exists
+    image: sakowicz/actual-ai:latest
     environment:
       - ACTUAL_SERVER_URL=http://actual-server:5006
-      - OLLAMA_BASE_URL=http://claude-code-proxy:11434 # Point to our proxy
       - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}
       - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}
-      - LLM_PROVIDER=ollama # Use ollama provider but point to our proxy
-      - FEATURES=["dryRun"] # Start in dry run mode
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://claude-code-proxy:11434 # Point to our proxy
+      - CLASSIFICATION_SCHEDULE_CRON=0 */4 * * * # Every 4 hours
+      - FEATURES=["dryRun", "classifyOnStartup", "syncAccountsBeforeClassify"]
+      - GUESSED_TAG=#dev-ai-classified
+      - NOT_GUESSED_TAG=#dev-ai-miss
     depends_on:
       - actual-server
       - claude-code-proxy

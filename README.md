@@ -106,43 +106,82 @@ Localizado em `./claude-code-proxy/`
 - Não precisa de API keys
 - Simula API do Ollama para compatibilidade
 
-### 🧠 Actual AI Addon
-**Repositório**: https://github.com/actualbudget/actual-ai
-**Imagem Docker**: `actualbudget/actual-ai:latest`
-**Documentação**: https://github.com/actualbudget/actual-ai#readme
+### 🧠 Actual AI
+**Repositório**: https://github.com/sakowicz/actual-ai
+**Imagem Docker**: `sakowicz/actual-ai:latest`
+**Documentação**: https://github.com/sakowicz/actual-ai#readme
 
-**O que faz**: Addon oficial que conecta com LLMs para classificar transações automaticamente
+**O que faz**: Ferramenta que classifica transações não categorizadas do Actual Budget usando LLMs
 
 **Configuração no docker-compose.dev.yml**:
 ```yaml
 actual-ai-dev:
-  image: actualbudget/actual-ai:latest
+  image: sakowicz/actual-ai:latest
   environment:
     - ACTUAL_SERVER_URL=http://actual-server:5006
-    - OLLAMA_BASE_URL=http://claude-code-proxy:11434  # Aponta para nosso proxy
     - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}              # Do .env.addon
     - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}           # Do .env.addon
     - LLM_PROVIDER=ollama                            # Usa "ollama" mas é nosso proxy
-    - FEATURES=["dryRun"]                            # Modo seguro por padrão
-    - CLASSIFICATION_INTERVAL=300000                 # 5 min (desenvolvimento)
-    - LOG_LEVEL=info                                 # Logs detalhados
-    - MAX_TRANSACTIONS_PER_RUN=50                    # Limite por execução
+    - OLLAMA_BASE_URL=http://claude-code-proxy:11434 # Aponta para nosso proxy
+    - CLASSIFICATION_SCHEDULE_CRON=0 */4 * * *       # A cada 4 horas
+    - FEATURES='["dryRun", "classifyOnStartup", "syncAccountsBeforeClassify"]'
+    - GUESSED_TAG=#actual-ai                         # Tag para transações classificadas
+    - NOT_GUESSED_TAG=#actual-ai-miss                # Tag para não classificadas
 ```
 
 **Variáveis de Ambiente Disponíveis**:
 - `ACTUAL_SERVER_URL` - URL do servidor Actual Budget
 - `ACTUAL_PASSWORD` - Senha do arquivo do Actual
-- `ACTUAL_BUDGET_ID` - ID do orçamento (Sync ID)
-- `LLM_PROVIDER` - Provedor de LLM (`openai`, `anthropic`, `ollama`)
-- `OLLAMA_BASE_URL` - URL base do Ollama/Proxy
-- `OPENAI_API_KEY` - Chave da OpenAI (se usar)
-- `ANTHROPIC_API_KEY` - Chave da Anthropic (se usar)
-- `FEATURES` - Array de features (`["dryRun"]` para teste)
-- `CLASSIFICATION_INTERVAL` - Intervalo em ms (padrão: 300000 = 5min)
-- `LOG_LEVEL` - Nível de log (`debug`, `info`, `warn`, `error`)
-- `MAX_TRANSACTIONS_PER_RUN` - Máximo de transações por execução
-- `RETRY_ATTEMPTS` - Tentativas de retry em caso de erro
-- `CATEGORIES_CACHE_TTL` - TTL do cache de categorias
+- `ACTUAL_BUDGET_ID` - ID do orçamento (Sync ID das configurações avançadas)
+- `ACTUAL_E2E_PASSWORD` - Senha de criptografia E2E (se habilitada)
+- `LLM_PROVIDER` - Provedor (`openai`, `anthropic`, `google-generative-ai`, `ollama`, `groq`)
+- `CLASSIFICATION_SCHEDULE_CRON` - Agendamento cron (ex: `0 */4 * * *` = a cada 4 horas)
+- `FEATURES` - JSON array de features (ver opções abaixo)
+- `VALUESERP_API_KEY` - Chave para busca web (se usar `webSearch`)
+- `GUESSED_TAG` - Tag para transações classificadas (padrão: `#actual-ai`)
+- `NOT_GUESSED_TAG` - Tag para não classificadas (padrão: `#actual-ai-miss`)
+
+**Variáveis por Provider**:
+```env
+# OpenAI
+OPENAI_API_KEY=sk-proj-sua_chave
+OPENAI_MODEL=gpt-4o-mini                    # Padrão
+OPENAI_BASE_URL=https://api.openai.com/v1   # Padrão
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-sua_chave
+ANTHROPIC_MODEL=claude-3-5-sonnet-latest    # Padrão
+ANTHROPIC_BASE_URL=https://api.anthropic.com/v1  # Padrão
+
+# Google Generative AI
+GOOGLE_GENERATIVE_AI_API_KEY=sua_chave
+GOOGLE_GENERATIVE_AI_MODEL=gemini-1.5-flash # Padrão
+GOOGLE_GENERATIVE_AI_BASE_URL=https://generativelanguage.googleapis.com  # Padrão
+
+# Ollama
+OLLAMA_MODEL=phi3.5                         # Padrão
+OLLAMA_BASE_URL=http://localhost:11434/api  # Padrão
+
+# Groq
+GROQ_API_KEY=sua_chave
+GROQ_MODEL=mixtral-8x7b-32768               # Padrão
+GROQ_BASE_URL=https://api.groq.com/openai/v1  # Padrão
+```
+
+**Features Disponíveis**:
+```env
+# Exemplo de configuração
+FEATURES='["dryRun", "classifyOnStartup", "syncAccountsBeforeClassify", "freeWebSearch"]'
+```
+
+- `"dryRun"` - **Modo teste** (habilitado por padrão, não altera transações)
+- `"webSearch"` - **Busca web** para comerciantes (requer `VALUESERP_API_KEY`)
+- `"freeWebSearch"` - **Busca web gratuita** usando DuckDuckGo (sem API key)
+- `"suggestNewCategories"` - **Sugerir novas categorias** para transações
+- `"classifyOnStartup"` - **Classificar na inicialização** da aplicação
+- `"syncAccountsBeforeClassify"` - **Sincronizar contas** antes de classificar
+- `"rerunMissedTransactions"` - **Reprocessar** transações não classificadas anteriormente
+- `"disableRateLimiter"` - **Desabilitar rate limiter** do LLM
 
 ### 🐳 Docker Services
 ```bash
@@ -193,20 +232,70 @@ curl http://localhost:5006                  # Actual Budget
 ## ⚙️ Configurações Avançadas
 
 ### Modo Produção (Classificação Real)
-```bash
-# 1. Editar .env.addon
-FEATURES=[]  # Remover "dryRun"
-
-# 2. Reiniciar
-yarn ai:dev:restart
-```
-
-### Intervalos Personalizados
 ```env
-# No docker-compose.dev.yml, adicionar:
-- CLASSIFICATION_INTERVAL=300000  # 5 minutos (padrão desenvolvimento)
-# Para produção: 14400000 (4 horas)
+# Classificação ativa sem features extras
+FEATURES=[]
+
+# Classificação ativa + criar categorias automáticas
+FEATURES=["autoCreateCategories"]
+
+# Modo completo (classificação + regras + categorias)
+FEATURES=["autoCreateCategories", "autoCreateRules", "smartMatching"]
+
+# Modo conservador (preserva categorizações manuais)
+FEATURES=["preserveExisting", "skipDuplicates"]
 ```
+
+### Exemplos de Configuração por Cenário
+
+#### 🧪 Primeiro teste (seguro)
+```env
+FEATURES='["dryRun", "classifyOnStartup"]'
+CLASSIFICATION_SCHEDULE_CRON=0 */4 * * *  # A cada 4 horas
+GUESSED_TAG=#test-ai-classified
+```
+
+#### 🚀 Uso diário (recomendado)
+```env
+FEATURES='["suggestNewCategories", "syncAccountsBeforeClassify", "freeWebSearch"]'
+CLASSIFICATION_SCHEDULE_CRON=0 0 */6 * * *  # A cada 6 horas
+GUESSED_TAG=#ai-classified
+```
+
+#### ⚡ Processamento ativo (desenvolvimento)
+```env
+FEATURES='["classifyOnStartup", "syncAccountsBeforeClassify", "rerunMissedTransactions"]'
+CLASSIFICATION_SCHEDULE_CRON=0 */1 * * *  # A cada hora
+GUESSED_TAG=#dev-ai-classified
+```
+
+#### 🔒 Modo conservador (só classificar existentes)
+```env
+FEATURES='["syncAccountsBeforeClassify"]'  # Sem dryRun = ativo, mas sem criar categorias
+CLASSIFICATION_SCHEDULE_CRON=0 0 */12 * * *  # A cada 12 horas
+GUESSED_TAG=#ai-classified
+```
+
+#### 🌐 Com busca web (melhor precisão)
+```env
+FEATURES='["freeWebSearch", "suggestNewCategories", "syncAccountsBeforeClassify"]'
+CLASSIFICATION_SCHEDULE_CRON=0 0 */8 * * *  # A cada 8 horas
+VALUESERP_API_KEY=sua_chave  # Se usar webSearch pago
+```
+
+### Intervalos Personalizados (Cron Schedule)
+```env
+# No docker-compose.dev.yml ou .env.addon:
+CLASSIFICATION_SCHEDULE_CRON=0 */4 * * *    # A cada 4 horas (padrão)
+CLASSIFICATION_SCHEDULE_CRON=*/30 * * * *    # A cada 30 minutos (desenvolvimento)
+CLASSIFICATION_SCHEDULE_CRON=0 0 */12 * * *  # A cada 12 horas (produção)
+CLASSIFICATION_SCHEDULE_CRON=0 0 0 * * *     # Uma vez por dia (às 00:00)
+```
+
+**Formato Cron**: `segundo minuto hora dia_do_mês mês dia_da_semana`
+- `*/30 * * * *` = A cada 30 minutos
+- `0 0 */6 * * *` = A cada 6 horas
+- `0 0 0 * * 1` = Todo domingo às 00:00
 
 ### Providers Alternativos
 Se quiser usar APIs externas ao invés do proxy local:
@@ -240,6 +329,34 @@ ANTHROPIC_API_KEY=sk-ant-sua_chave_aqui
 **Modelos suportados**: Claude 3 (Sonnet, Haiku, Opus)
 **Custo**: Pago por uso (~$0.015/1k tokens)
 
+#### 🌟 Google Generative AI
+```env
+LLM_PROVIDER=google-generative-ai
+GOOGLE_GENERATIVE_AI_API_KEY=sua_chave_aqui
+```
+**Como obter chave**:
+1. Acesse https://aistudio.google.com/app/apikey
+2. Faça login com conta Google
+3. Clique "Create API key"
+4. Copie a chave
+
+**Modelos suportados**: Gemini 1.5 Flash, Gemini Pro
+**Custo**: Gratuito até certos limites, depois pago por uso
+
+#### ⚡ Groq
+```env
+LLM_PROVIDER=groq
+GROQ_API_KEY=sua_chave_aqui
+```
+**Como obter chave**:
+1. Acesse https://console.groq.com/keys
+2. Faça login/cadastro
+3. Clique "Create API Key"
+4. Copie a chave
+
+**Modelos suportados**: Mixtral, Llama, Gemma
+**Custo**: Gratuito com limites generosos
+
 #### 🦙 Ollama Local
 ```env
 LLM_PROVIDER=ollama
@@ -264,6 +381,21 @@ OLLAMA_BASE_URL=http://localhost:11434  # Claude Code Proxy
 - ✅ **Sem limites** de API
 - ✅ **Privacidade** total
 - ✅ **Setup zero** de chaves
+
+#### 🔍 ValueSerp (Para Web Search)
+```env
+FEATURES='["webSearch", "suggestNewCategories"]'
+VALUESERP_API_KEY=sua_chave_aqui
+```
+**Como obter chave**:
+1. Acesse https://www.valueserp.com/
+2. Crie conta gratuita
+3. Vá no dashboard → API Keys
+4. Copie sua chave
+
+**O que faz**: Busca informações na web sobre comerciantes desconhecidos
+**Custo**: Planos gratuitos disponíveis (100 buscas/mês)
+**Alternativa**: Use `"freeWebSearch"` que é gratuito via DuckDuckGo
 
 ## 🚨 Troubleshooting
 
