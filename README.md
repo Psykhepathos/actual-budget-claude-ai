@@ -107,7 +107,11 @@ Localizado em `./claude-code-proxy/`
 - Simula API do Ollama para compatibilidade
 
 ### 🧠 Actual AI Addon
+**Repositório**: https://github.com/actualbudget/actual-ai
 **Imagem Docker**: `actualbudget/actual-ai:latest`
+**Documentação**: https://github.com/actualbudget/actual-ai#readme
+
+**O que faz**: Addon oficial que conecta com LLMs para classificar transações automaticamente
 
 **Configuração no docker-compose.dev.yml**:
 ```yaml
@@ -120,7 +124,25 @@ actual-ai-dev:
     - ACTUAL_BUDGET_ID=${ACTUAL_BUDGET_ID}           # Do .env.addon
     - LLM_PROVIDER=ollama                            # Usa "ollama" mas é nosso proxy
     - FEATURES=["dryRun"]                            # Modo seguro por padrão
+    - CLASSIFICATION_INTERVAL=300000                 # 5 min (desenvolvimento)
+    - LOG_LEVEL=info                                 # Logs detalhados
+    - MAX_TRANSACTIONS_PER_RUN=50                    # Limite por execução
 ```
+
+**Variáveis de Ambiente Disponíveis**:
+- `ACTUAL_SERVER_URL` - URL do servidor Actual Budget
+- `ACTUAL_PASSWORD` - Senha do arquivo do Actual
+- `ACTUAL_BUDGET_ID` - ID do orçamento (Sync ID)
+- `LLM_PROVIDER` - Provedor de LLM (`openai`, `anthropic`, `ollama`)
+- `OLLAMA_BASE_URL` - URL base do Ollama/Proxy
+- `OPENAI_API_KEY` - Chave da OpenAI (se usar)
+- `ANTHROPIC_API_KEY` - Chave da Anthropic (se usar)
+- `FEATURES` - Array de features (`["dryRun"]` para teste)
+- `CLASSIFICATION_INTERVAL` - Intervalo em ms (padrão: 300000 = 5min)
+- `LOG_LEVEL` - Nível de log (`debug`, `info`, `warn`, `error`)
+- `MAX_TRANSACTIONS_PER_RUN` - Máximo de transações por execução
+- `RETRY_ATTEMPTS` - Tentativas de retry em caso de erro
+- `CATEGORIES_CACHE_TTL` - TTL do cache de categorias
 
 ### 🐳 Docker Services
 ```bash
@@ -189,19 +211,59 @@ yarn ai:dev:restart
 ### Providers Alternativos
 Se quiser usar APIs externas ao invés do proxy local:
 
+#### 🤖 OpenAI
 ```env
-# OpenAI
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-proj-sua_chave
-
-# Anthropic
-LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-sua_chave
-
-# Ollama real (local)
-LLM_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434  # Ollama real
+OPENAI_API_KEY=sk-proj-sua_chave_aqui
 ```
+**Como obter chave**:
+1. Acesse https://platform.openai.com/api-keys
+2. Faça login/cadastro
+3. Clique "Create new secret key"
+4. Copie a chave (começa com `sk-proj-`)
+
+**Modelos suportados**: GPT-4, GPT-3.5-turbo
+**Custo**: Pago por uso (~$0.03/1k tokens)
+
+#### 🧠 Anthropic Claude
+```env
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-sua_chave_aqui
+```
+**Como obter chave**:
+1. Acesse https://console.anthropic.com/
+2. Faça login/cadastro
+3. Vá em "API Keys"
+4. Clique "Create Key"
+5. Copie a chave (começa com `sk-ant-`)
+
+**Modelos suportados**: Claude 3 (Sonnet, Haiku, Opus)
+**Custo**: Pago por uso (~$0.015/1k tokens)
+
+#### 🦙 Ollama Local
+```env
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+```
+**Como instalar**:
+1. Baixe em https://ollama.ai/
+2. Instale Ollama
+3. Execute: `ollama pull llama2` (ou outro modelo)
+4. Inicie: `ollama serve`
+
+**Modelos suportados**: Llama2, Mistral, CodeLlama, etc.
+**Custo**: Gratuito (roda local)
+
+#### 🔗 Nossa Solução (Padrão)
+```env
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434  # Claude Code Proxy
+```
+**Vantagens**:
+- ✅ **Gratuito** (usa sua sessão local)
+- ✅ **Sem limites** de API
+- ✅ **Privacidade** total
+- ✅ **Setup zero** de chaves
 
 ## 🚨 Troubleshooting
 
